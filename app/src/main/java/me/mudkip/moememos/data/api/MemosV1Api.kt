@@ -34,7 +34,11 @@ interface MemosV1Api {
     suspend fun createMemo(@Body body: MemosV1CreateMemoRequest): ApiResponse<MemosV1Memo>
 
     @PATCH("api/v1/memos/{id}")
-    suspend fun updateMemo(@Path("id") memoId: String, @Body body: UpdateMemoRequest): ApiResponse<MemosV1Memo>
+    suspend fun updateMemo(
+        @Path("id") memoId: String,
+        @Query("updateMask") updateMask: String,
+        @Body body: UpdateMemoRequest,
+    ): ApiResponse<MemosV1Memo>
 
     @DELETE("api/v1/memos/{id}")
     suspend fun deleteMemo(@Path("id") memoId: String): ApiResponse<Unit>
@@ -103,7 +107,16 @@ data class UpdateMemoRequest(
     @Serializable(with = Rfc3339InstantSerializer::class)
     val updateTime: Instant? = null,
     val attachments: List<MemosV1Resource>? = null
-)
+) {
+    fun updateMask(): String = buildList {
+        if (content != null) add("content")
+        if (visibility != null) add("visibility")
+        if (state != null) add("state")
+        if (pinned != null) add("pinned")
+        if (updateTime != null) add("update_time")
+        if (attachments != null) add("attachments")
+    }.joinToString(",")
+}
 
 @Serializable
 data class ListResourceResponse(

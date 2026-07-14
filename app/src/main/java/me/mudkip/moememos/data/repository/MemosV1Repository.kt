@@ -152,14 +152,16 @@ class MemosV1Repository(
         pinned: Boolean?,
         archived: Boolean?
     ): ApiResponse<Memo> {
-        val resp = memosApi.updateMemo(getId(remoteId), UpdateMemoRequest(
+        val request = UpdateMemoRequest(
             content = content,
             visibility = visibility?.let { MemosVisibility.fromMemoVisibility(it) },
             pinned = pinned,
             state = archived?.let { isArchived -> if (isArchived) MemosV1State.ARCHIVED else MemosV1State.NORMAL },
             updateTime = Instant.now(),
             attachments = resourceRemoteIds?.map { MemosV1Resource(name = getName(it)) }
-        )).mapSuccess { convertMemo(this) }
+        )
+        val resp = memosApi.updateMemo(getId(remoteId), request.updateMask(), request)
+            .mapSuccess { convertMemo(this) }
         return resp
     }
 
